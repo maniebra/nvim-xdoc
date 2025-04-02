@@ -7,7 +7,7 @@ local ns = vim.api.nvim_create_namespace("xdoc")
 local enabled = true
 
 
-local function get_style_for_line(text)
+local function get_highlight(text)
   local trimmed = vim.trim(text)
 
   if vim.startswith(trimmed, "# ") then return "XDocHeader" end
@@ -22,38 +22,70 @@ end
 --- Build a box-style virt_lines block
 ---@param lines string[]
 ---@return table
+
 local function build_box(lines)
-  local max_width = 0
-  for _, line in ipairs(lines) do
-    max_width = math.max(max_width, #line.text)
-  end
+  local win_width = vim.api.nvim_win_get_width(0)
+  local num_width = vim.wo.number and vim.wo.numberwidth or 0
+  local fold_width = tonumber(vim.wo.foldcolumn) or 0
+  local sign_width = (vim.wo.signcolumn == "no" and 0 or 2)
+
+  local effective_width = win_width - num_width - fold_width - sign_width
+  if effective_width < 10 then effective_width = 10 end  -- safety guard
+
+  local content_width = effective_width - 2  -- account for vertical borders
 
   local virt_lines = {}
+
+  -- top border
   table.insert(virt_lines, {
-    { "┌", "Comment" },
-    { string.rep("─", max_width + 2), "Comment" },
-    { "┐", "Comment" },
+    { "┌" .. string.rep("─", content_width) .. "┐", "Comment" }
   })
 
   for _, line in ipairs(lines) do
-    local pad = max_width - #line.text
-    local hl = get_style_for_line(line.text)
+    local text = line.text
+    local hl = get_highlight(text)
+    local display_width = vim.fn.strdisplaywidth(text)
+    if display_width > content_width then
+      local truncated = ""
+      local remaining_width = content_width - 3  -- reserve space for "..."
+      local i = 1
+      while remaining_width > 0 and i <= #text do
+        local char = text:sub(i, i)
+        local char_width = vim.fn.strdisplaywidth(char)
+        if char_width <= remaining_width then
+          truncated = truncated .. char
+          remaining_width = remaining_width - char_width
+        else
+          break
+        end
+        i = i + 1
+      end
+      text = truncated .. "..."
+      display_width = vim.fn.strdisplaywidth(text)
+    end
 
+    local pad = content_width - display_width
+    local padded = text .. string.rep(" ", pad)
     table.insert(virt_lines, {
-      { "│ ", "Comment" },
-      { line.text .. string.rep(" ", pad), hl },
-      { " │", "Comment" },
+      { "│", "Comment" },
+      { padded, hl },
+      { "│", "Comment" },
     })
   end
 
+  -- bottom border
   table.insert(virt_lines, {
-    { "└", "Comment" },
-    { string.rep("─", max_width + 2), "Comment" },
-    { "┘", "Comment" },
+    { "└" .. string.rep("─", content_width) .. "┘", "Comment" }
   })
 
   return virt_lines
 end
+
+
+--
+-- # Goobert
+-- ## The infamous cat
+--
 
 
 --- Group parsed comment lines into contiguous blocks
@@ -128,6 +160,7 @@ function M.toggle()
     M.clear()
   end
 end
+
 
 
 return M

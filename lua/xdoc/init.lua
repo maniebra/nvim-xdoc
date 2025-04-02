@@ -25,6 +25,14 @@ function M.setup(user_config)
     })
 
 
+    vim.api.nvim_create_autocmd("VimResized", {
+      pattern = "*",
+      callback = function()
+        require("xdoc.renderer").render()
+      end,
+    })
+
+
     vim.api.nvim_create_autocmd("ColorScheme", {
         pattern = "*",
         callback = function()
