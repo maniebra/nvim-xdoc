@@ -6,12 +6,18 @@ local util = require("xdoc.util")
 local ns = vim.api.nvim_create_namespace("xdoc")
 local enabled = true
 
---- Utility to check if a comment line is empty
----@param text string
----@return boolean
-local function is_empty_comment(text)
-  return vim.trim(text) == ""
+
+local function get_style_for_line(text)
+  local trimmed = vim.trim(text)
+
+  if vim.startswith(trimmed, "# ") then return "XDocHeader" end
+  if vim.startswith(trimmed, "## ") then return "XDocSubheader" end
+  if vim.startswith(trimmed, "### ") then return "XDocMinor" end
+  if vim.startswith(trimmed, "- ") then return "XDocBullet" end
+
+  return "XDocText"
 end
+
 
 --- Build a box-style virt_lines block
 ---@param lines string[]
@@ -23,18 +29,32 @@ local function build_box(lines)
   end
 
   local virt_lines = {}
-  table.insert(virt_lines, { { "┌" .. string.rep("─", max_width + 2) .. "┐", "Comment" } })
+  table.insert(virt_lines, {
+    { "┌", "Comment" },
+    { string.rep("─", max_width + 2), "Comment" },
+    { "┐", "Comment" },
+  })
 
   for _, line in ipairs(lines) do
     local pad = max_width - #line.text
+    local hl = get_style_for_line(line.text)
+
     table.insert(virt_lines, {
-      { "│ " .. line.text .. string.rep(" ", pad) .. " │", "Comment" },
+      { "│ ", "Comment" },
+      { line.text .. string.rep(" ", pad), hl },
+      { " │", "Comment" },
     })
   end
 
-  table.insert(virt_lines, { { "└" .. string.rep("─", max_width + 2) .. "┘", "Comment" } })
+  table.insert(virt_lines, {
+    { "└", "Comment" },
+    { string.rep("─", max_width + 2), "Comment" },
+    { "┘", "Comment" },
+  })
+
   return virt_lines
 end
+
 
 --- Group parsed comment lines into contiguous blocks
 ---@param lines table
@@ -71,7 +91,7 @@ function M.render()
   local blocks = group_blocks(comment_lines)
 
   for _, block in ipairs(blocks) do
-    if #block >= 3 and is_empty_comment(block[1].text) and is_empty_comment(block[#block].text) then
+    if #block >= 3 and util.is_empty_comment(block[1].text) and util.is_empty_comment(block[#block].text) then
       local box_lines = vim.list_slice(block, 2, #block - 1)
       local box = build_box(box_lines)
 
@@ -109,11 +129,6 @@ function M.toggle()
   end
 end
 
--- 
--- asf
--- adsg
--- sagad
--- 
 
 return M
 
