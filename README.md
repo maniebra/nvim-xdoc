@@ -1,7 +1,9 @@
+# NVIM-XDoc
+
 > Markdown-style notes & docs embedded in your code – beautifully rendered inside Neovim.
 
 
-### ✨ What is nvim-xdoc?
+## ✨ What is nvim-xdoc?
 
 `nvim-xdoc` is a lightweight Neovim plugin that turns specially-formatted comments into rendered, boxed virtual text. Think of it like Markdown for your comments – but rendered right inside your code, folding the raw comments away and replacing them with stylized visual blocks.
 
@@ -12,7 +14,7 @@ Perfect for:
 
 ---
 
-### 📸 Example
+## 📸 Example
 
 ```lua
 -- 
@@ -38,7 +40,7 @@ The raw comments are folded away for a clean view!
 
 ---
 
-### ⚙️ Installation
+## ⚙️ Installation
 
 With [lazy.nvim](https://github.com/folke/lazy.nvim):
 
@@ -64,7 +66,7 @@ use {
 
 ---
 
-### 🔧 Configuration
+## 🔧 Configuration
 
 ```lua
 require("xdoc").setup({
@@ -84,7 +86,7 @@ require("xdoc").setup({
 
 ---
 
-### 🧠 How It Works
+## 🧠 How It Works
 
 - Comments are parsed based on your filetype’s syntax.
 - Comments surrounded by blank comment lines are grouped and parsed.
@@ -93,7 +95,7 @@ require("xdoc").setup({
 
 ---
 
-### 🚀 Usage
+## 🚀 Usage
 
 Once set up, `xdoc` just works when you enter **Normal mode** or when the **window is resized**.
 
@@ -105,7 +107,7 @@ require("xdoc").toggle_preview()
 
 ---
 
-### 🎨 Highlight Groups
+## 🎨 Highlight Groups
 
 You can customize these in your colorscheme or config:
 
@@ -117,7 +119,7 @@ You can customize these in your colorscheme or config:
 
 ---
 
-### 🧪 Supported Languages (out of the box)
+## 🧪 Supported Languages (out of the box)
 
 - Lua
 - Python
@@ -129,7 +131,7 @@ Feel free to extend `comment_syntax` in your config!
 
 ---
 
-### 📣 Contributing
+## 📣 Contributing
 
 PRs, issues, and suggestions are always welcome! Let's make Neovim commenting more elegant together. 🖋️
 
