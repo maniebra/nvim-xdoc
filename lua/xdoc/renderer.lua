@@ -113,45 +113,56 @@ end
 
 --- Main rendering function
 function M.render()
-    if not enabled then return end
+  if not enabled then
+    return
+  end
 
-    local bufnr = vim.api.nvim_get_current_buf()
-    vim.api.nvim_buf_clear_namespace(bufnr, ns, 0, -1)
+  local bufnr = vim.api.nvim_get_current_buf()
+  vim.api.nvim_buf_clear_namespace(bufnr, ns, 0, -1)
 
-    local comment_lines = parser.parse_buffer()
-    local blocks = group_blocks(comment_lines)
+  local comment_lines = parser.parse_buffer()
+  local blocks = group_blocks(comment_lines)
 
-    for _, block in ipairs(blocks) do
-        local is_empty_box = (#block >= 3 and util.is_empty_comment(block[1].text) and util.is_empty_comment(block[#block].text))
-        local is_doc = is_doc_block(block)
+  for _, block in ipairs(blocks) do
+    local is_empty_box = (#block >= 3
+          and util.is_empty_comment(block[1].text)
+          and util.is_empty_comment(block[#block].text))
+    local is_doc = is_doc_block(block)
 
-        if is_empty_box or is_doc then
-            local content
-            if is_empty_box then
-                content = vim.list_slice(block, 2, #block - 1)
-            else
-                content = block
-            end
+    if is_empty_box or is_doc then
+      local content
+      if is_empty_box then
+        content = vim.list_slice(block, 2, #block - 1)
+      else
+        content = block
+      end
 
-            local box = build_box(content)
+      local box = build_box(content)
 
-            local virt_opts = {
-                virt_lines = box,
-                hl_mode = "combine",
-                virt_lines_above = block[1].lnum ~= 0, -- show below if first line
-            }
+      if is_empty_box then
+        -- Attach the virtual box immediately after the folded block,
+        -- but render it immediately above the marker line.
+        local mark_line = block[#block].lnum + 1
+        vim.api.nvim_buf_set_extmark(bufnr, ns, mark_line, 0, {
+          virt_lines = box,
+          hl_mode = "combine",
+          virt_lines_above = true,  -- Changed to true to remove gap.
+        })
 
-            vim.api.nvim_buf_set_extmark(bufnr, ns, block[1].lnum, 0, virt_opts)
-
-            if is_empty_box then
-                local fold_start = block[2].lnum + 1
-                local fold_end = block[#block - 1].lnum + 1
-                if fold_end >= fold_start then
-                    vim.cmd(fold_start .. "," .. fold_end .. "fold")
-                end
-            end
+        local fold_start = block[1].lnum + 1
+        local fold_end = block[#block].lnum + 1
+        if fold_end >= fold_start then
+          vim.cmd(fold_start .. "," .. fold_end .. "fold")
         end
+      else
+        vim.api.nvim_buf_set_extmark(bufnr, ns, block[1].lnum, 0, {
+          virt_lines = box,
+          hl_mode = "combine",
+          virt_lines_above = block[1].lnum ~= 0,
+        })
+      end
     end
+  end
 end
 
 --- Clears all virtual highlights and folds created by xdoc
