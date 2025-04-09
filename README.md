@@ -27,6 +27,14 @@ Perfect for:
 --
 ```
 
+```c
+//
+// # Quick Start
+// ## How to use xdoc
+// - Write structured comments
+// - They get rendered as boxes
+```
+
 ⬇️ becomes
 
 ```
