@@ -1,7 +1,3 @@
--- 
--- # Goobert
--- ## The infamous cat
--- 
 local M = {}
 
 function M.get_comment_prefix()
@@ -20,11 +16,6 @@ end
 function M.is_empty_comment(text)
   return vim.trim(text) == ""
 end
-
--- 
--- # meow
--- wiwiwiwi
---
 
 
 return M
